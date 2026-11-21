@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regalos Cruzados</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Diseño: una sola columna estrecha. La tarjeta del turno ocupa el centro, con controles pequeños arriba (atrás, inicio, contador) y un único botón de avance abajo. */
+:root{
+  --bg:#F1F0FF; --surface:#FFFFFF; --fg:#17153B; --muted:#585589;
+  --accent:#FFC83D; --on-accent:#17153B; --pop:#D92B55; --on-pop:#FFFFFF; --line:#D6D3F4; --soft:#E6E4FB;
+  --font-display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12102E; --surface:#1D1A45; --fg:#F4F2FF; --muted:#ABA8D8;
+    --accent:#FFC83D; --on-accent:#17153B; --pop:#FF7D96; --on-pop:#12102E; --line:#34306A; --soft:#272359;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12102E; --surface:#1D1A45; --fg:#F4F2FF; --muted:#ABA8D8;
+  --accent:#FFC83D; --on-accent:#17153B; --pop:#FF7D96; --on-pop:#12102E; --line:#34306A; --soft:#272359;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{margin:0}
+:root{color-scheme:light}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--font-body); font-size:18px; line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:16px;
+  -webkit-tap-highlight-color:transparent;
+}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--pop);outline-offset:3px}
+.wrap{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:16px}
+h1,h2{font-family:var(--font-display);margin:0;text-wrap:balance}
+
+/* Botones */
+.btn{border:0;border-radius:16px;font-family:var(--font-display);font-weight:600;font-size:20px;min-height:52px;padding:0 24px;background:var(--soft);color:var(--fg)}
+.btn-accent{background:var(--accent);color:var(--on-accent)}
+.btn-main{min-width:170px;min-height:56px}
+.btn-ghost{background:transparent;border:2px solid var(--line)}
+.btn[disabled],.btn-sm[disabled]{opacity:.4;cursor:default}
+.btn-sm{border:0;background:transparent;color:var(--muted);font-family:var(--font-body);font-weight:700;font-size:14px;min-height:34px;padding:0 10px;border-radius:10px}
+.btn-sm:hover{background:var(--soft)}
+
+/* Inicio */
+.kicker{font-family:var(--font-display);font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:8px 0 0}
+.home h1{font-size:clamp(40px,12vw,56px);line-height:1.02}
+.lead{margin:0;color:var(--muted)}
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.panel h2{font-size:22px}
+.panel ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+.panel li::marker{font-family:var(--font-display);font-weight:700;color:var(--pop)}
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stepper .val{font-family:var(--font-display);font-size:44px;font-weight:700;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+.stepper .btn{width:56px;padding:0;font-size:28px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row .btn{flex:1 1 140px}
+.status{margin:0;color:var(--muted)}
+
+/* Juego */
+.topbar{display:flex;align-items:center;gap:4px}
+.topbar .count{margin-left:auto;font-family:var(--font-display);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums;padding-right:6px}
+.card{flex:1;background:var(--surface);border:2px solid var(--line);border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:16px;animation:in .25s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tag{align-self:flex-start;background:var(--accent);color:var(--on-accent);font-family:var(--font-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:4px 12px;border-radius:999px}
+.tag.special{background:var(--pop);color:var(--on-pop)}
+.title{font-size:clamp(30px,9vw,40px);line-height:1.08}
+.phrase{margin:0;font-family:var(--font-display);font-weight:600;font-size:clamp(24px,7vw,32px);line-height:1.25;text-wrap:balance}
+.phrase .gap{color:var(--muted)}
+.phrase .sol{color:var(--pop)}
+.text{margin:0;font-size:20px;line-height:1.5}
+.act{margin-top:auto;display:flex;justify-content:center;padding-top:8px}
+.bigs{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:center;margin:auto 0 0}
+.big{font-family:var(--font-display);font-weight:700;font-size:clamp(76px,28vw,132px);line-height:1;color:var(--pop);font-variant-numeric:tabular-nums}
+.big.word{font-size:clamp(34px,11vw,54px);text-align:center;line-height:1.1}
+.result-line{margin:0 0 auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--soft);border-radius:999px;padding:4px 14px;font-weight:700;font-size:16px}
+.link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.ring{align-self:center;margin:auto;width:150px;height:150px;border-radius:50%;border:10px solid var(--accent);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(.88);opacity:.6}50%{transform:scale(1);opacity:1}}
+.hint{margin:0;text-align:center;color:var(--muted);font-size:15px}
+.nav{display:flex;justify-content:center}
+.gift{align-self:center;width:130px;height:auto;margin-top:auto}
+.gift .box{fill:var(--accent)} .gift .lid{fill:var(--accent);stroke:var(--on-accent);stroke-width:3} .gift .rib{fill:var(--pop)}
+.final-actions{margin-bottom:auto;display:flex;justify-content:center}
+@media (prefers-reduced-motion: reduce){.card,.ring{animation:none}}
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function(){
+'use strict';
+var KEY='regalos-cruzados-v1';
+var TOTAL=24;
+
+/* ---------- utilidades ---------- */
+function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function pick(a){return a[rnd(0,a.length-1)];}
+function distinct(N,k){var s=[];while(s.length<k){var x=rnd(1,N);if(s.indexOf(x)<0){s.push(x);}}return s;}
+function puestos(n){return n+(n===1?' puesto':' puestos');}
+
+/* ---------- pantallas ----------
+   kind: text | draw | timer | link
+   Las 23 primeras se barajan; la última (la 24) queda siempre al final. */
+var SCREENS=[
+ {tag:'Cambio',title:'Cambio al azar',kind:'draw',
+  text:'Pulsa el botón para saber con quién cambias tu regalo.',
+  draw:function(N){return {a:rnd(1,N)};},
+  result:function(v){return {big:[v.a],line:'Cambia tu regalo por el del jugador número '+v.a+'. Si sale tu propio número, te quedas como estás.'};}},
+ {tag:'Cambio',title:'Prendas rojas',kind:'text',
+  text:'Todos los participantes con alguna prenda roja claramente visible intercambian regalos entre ellos como tú decidas. Si solo hay una persona, debe intercambiarlo contigo.'},
+ {tag:'Movimiento',title:'Pares o impares',kind:'draw',
+  text:'Pulsa el botón para ver quién se mueve.',
+  draw:function(){return {w:pick(['pares','impares'])};},
+  result:function(v){return {big:[v.w.toUpperCase()],line:'Los jugadores con número '+v.w+' se mueven una posición a la derecha. Cada uno deja su regalo donde estaba.'};}},
+ {tag:'Cambio',title:'Tira el dado',kind:'draw',cta:'Tirar',
+  text:'Pulsa el botón para tirar el dado.',
+  draw:function(){return {d:rnd(1,6)};},
+  result:function(v){return {big:[v.d],line:'Cambia tu regalo por el de la persona que está a '+puestos(v.d)+' a tu izquierda. Si das la vuelta entera, sigue contando.'};}},
+ {tag:'Temporizador',title:'La silla',kind:'timer',min:8,max:25,
+  text:'Poneos de pie y caminad despacio en círculo alrededor de la mesa. Pulsa «Empezar» y deja el móvil sobre la mesa. Nadie sabe cuándo sonará.',
+  done:'Todos se paran donde estén. Cada uno se queda con el regalo que tenga delante.'},
+ {tag:'Prueba',title:'Continúa la letra',kind:'reveal',
+  text:'Di en voz alta cómo sigue la canción «Ave María» de David Bisbal y después pulsa «Revelar». Si aciertas, decides quiénes intercambian sus regalos y cómo. Si fallas, o revelas la frase antes de decirla, la mayoría decide con quién cambias tu regalo.',
+  start:'Y cuando yo te veo, no sé lo que siento<br>Y cuando yo te tengo, me quemo por dentro<br>Y más, y más de ti yo me enamoro...',
+  solution:'Tú eres lo que quiero, tú eres mi tesoro.'},
+ {tag:'Robo',title:'Quien algo quiere',kind:'text',
+  text:'Roba el regalo de quien quieras. Esa persona no podrá robar ninguno de tus regalos de manera directa mientras dure el juego.'},
+ {tag:'Cambio',title:'Dos al azar',kind:'draw',
+  text:'Pulsa el botón para elegir a la pareja.',
+  draw:function(N){var s=distinct(N,2).sort(function(x,y){return x-y;});return {a:s[0],b:s[1]};},
+  result:function(v){return {big:[v.a,v.b],line:'Los jugadores número '+v.a+' y '+v.b+' intercambian sus regalos.'};}},
+ {tag:'Reto',title:'Mímica',kind:'text',
+  text:'Representa con mímica una película, sin hablar. Quien la adivine intercambia su regalo con el tuyo. Si nadie la adivina, tú eliges con quién cambiar.'},
+ {tag:'Cambio',title:'Cara o cruz',kind:'draw',cta:'Lanzar',
+  text:'Pulsa el botón para lanzar la moneda.',
+  draw:function(){return {c:pick(['cara','cruz'])};},
+  result:function(v){return {big:[v.c.toUpperCase()],line:v.c==='cara'?'Cambia tu regalo por el de la persona que tienes a tu derecha.':'Cambia tu regalo por el de la persona que tienes a tu izquierda.'};}},
+ {tag:'Movimiento',title:'Múltiplos',kind:'draw',
+  text:'Pulsa el botón para sortear el número.',
+  draw:function(N){return {k:pick([2,3,4].filter(function(x){return x<=N;}))};},
+  result:function(v){return {big:[v.k],line:'Los jugadores cuyo número sea múltiplo de '+v.k+' pasan su regalo a la persona que tienen a su derecha.'};}},
+ {tag:'Pregunta',title:'Verdad o mentira',kind:'text',
+  text:'Cuenta tres anécdotas tuyas. Una es falsa. Todos señalan cuál creen que es. Quien se equivoque cambia su regalo por el tuyo.'},
+ {tag:'Cambio',title:'Jugador estrella',kind:'draw',
+  text:'Pulsa el botón para saber quién tiene el poder.',
+  draw:function(N){return {a:rnd(1,N)};},
+  result:function(v){return {big:[v.a],line:'El jugador número '+v.a+' elige a quien quiera e intercambia su regalo con esa persona.'};}},
+ {tag:'Especial',title:'Cambio en cadena',kind:'text',
+  text:'Intercambia el regalo con quien tú quieras. La persona con la que intercambies el regalo podrá hacer lo mismo con otra persona, excepto contigo.'},
+ {tag:'Movimiento',title:'Todos a la vez',kind:'draw',
+  text:'Pulsa el botón para sortear cuántos puestos.',
+  draw:function(){return {n:rnd(1,3)};},
+  result:function(v){return {big:[v.n],line:'Todos a la vez: cada jugador deja su regalo y se mueve '+puestos(v.n)+' a la derecha.'};}},
+ {tag:'Temporizador',title:'Patata caliente',kind:'timer',min:10,max:30,
+  text:'Cada uno coge un regalo cualquiera y todos los pasáis hacia la izquierda, de mano en mano, lo más rápido que podáis. Pulsa «Empezar» y deja el móvil sobre la mesa.',
+  done:'Quedaos con el regalo que tengáis en las manos.'},
+ {tag:'Reto',title:'Un elogio',kind:'text',
+  text:'Dile algo bonito, y de verdad, a la persona que tienes a tu izquierda. Si consigues que se ría, os cambiáis los regalos.'},
+ {tag:'Movimiento',title:'Mayores que…',kind:'draw',
+  text:'Pulsa el botón para sortear el número.',
+  draw:function(N){return {n:rnd(1,Math.max(1,N-1))};},
+  result:function(v){return {big:[v.n],line:'Los jugadores con número mayor que '+v.n+' cambian su regalo por el de la persona que tienen a su izquierda.'};}},
+ {tag:'Pregunta',title:'Quién lo merece',kind:'text',
+  text:'Señala a la persona que más se merece un buen regalo hoy y explica por qué. Esa persona intercambia su regalo con quien ella elija.'},
+ {tag:'Movimiento',title:'Triángulo',kind:'draw',
+  text:'Pulsa el botón para formar el triángulo.',
+  draw:function(N){return {t:distinct(N,3)};},
+  result:function(v){return {big:v.t,line:'Rotad los regalos: el jugador '+v.t[0]+' da el suyo al '+v.t[1]+', el '+v.t[1]+' al '+v.t[2]+' y el '+v.t[2]+' al '+v.t[0]+'.'};}},
+ {tag:'Protección',title:'Escudo',kind:'text',
+  text:'Elige un regalo, incluso el tuyo. Queda protegido: nadie puede robarlo ni cambiarlo hasta el final del juego. Solo las acciones especiales podrán obligarte a cambiarlo.'},
+ {tag:'Cambio',title:'A la de tres',kind:'text',
+  text:'Cuenta hasta tres. A la de tres, todos señalan a la persona con la que cambiarían su regalo. Si dos personas se señalan entre sí, intercambian.'},
+ {tag:'Movimiento',title:'Cada mitad',kind:'draw',
+  text:'Pulsa el botón para decidir qué mitad se mueve.',
+  draw:function(N){var h=Math.floor(N/2);return {lo:Math.random()<0.5,h:h};},
+  result:function(v,N){var r=v.lo?('del 1 al '+v.h):('del '+(v.h+1)+' al '+N);return {big:[r.toUpperCase()],line:'Los jugadores con número '+r+' cambian su regalo por el de la persona que tienen a su derecha.'};}},
+ /* Pantalla 24: siempre la última */
+ {tag:'Especial',title:'Última ronda',kind:'text',
+  text:'Elige el regalo que esté envuelto en el color más oscuro. Su dueño debe intercambiar su regalo con una persona que tenga gafas.'}
+];
+
+/* ---------- estado ---------- */
+var S=null;           // partida guardada
+var view='home';      // home | game
+var setup={n:8,confirm:false};
+var tm={id:-1,handle:0,running:false};
+var wl=null,ac=null;
+
+function load(){
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(!raw){return null;}
+    var o=JSON.parse(raw);
+    if(o&&o.order&&o.order.length===TOTAL&&typeof o.i==='number'&&o.n){return o;}
+  }catch(e){}
+  return null;
+}
+function save(){
+  try{
+    if(S){localStorage.setItem(KEY,JSON.stringify(S));}
+    else{localStorage.removeItem(KEY);}
+  }catch(e){}
+}
+function shuffled(){
+  var a=[];for(var i=0;i<TOTAL-1;i++){a.push(i);}
+  for(var j=a.length-1;j>0;j--){var k=rnd(0,j);var t=a[j];a[j]=a[k];a[k]=t;}
+  a.push(TOTAL-1);
+  return a;
+}
+
+/* ---------- sonido, vibración y pantalla encendida ---------- */
+function primeAudio(){
+  try{
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC){return;}
+    ac=ac||new AC();
+    if(ac.state==='suspended'){ac.resume();}
+  }catch(e){}
+}
+function alarm(){
+  try{
+    if(ac){
+      var t=ac.currentTime;
+      for(var i=0;i<4;i++){
+        var o=ac.createOscillator(),g=ac.createGain();
+        o.type='square';o.frequency.value=i%2?740:988;
+        g.gain.setValueAtTime(0.0001,t+i*0.28);
+        g.gain.exponentialRampToValueAtTime(0.3,t+i*0.28+0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.28+0.24);
+        o.connect(g);g.connect(ac.destination);
+        o.start(t+i*0.28);o.stop(t+i*0.28+0.26);
+      }
+    }
+  }catch(e){}
+  try{if(navigator.vibrate){navigator.vibrate([300,100,300,100,300]);}}catch(e){}
+}
+function lock(){
+  try{
+    if(navigator.wakeLock&&navigator.wakeLock.request){
+      navigator.wakeLock.request('screen').then(function(l){wl=l;}).catch(function(){});
+    }
+  }catch(e){}
+}
+function unlock(){try{if(wl){wl.release();}}catch(e){}wl=null;}
+function stopTimer(){
+  if(tm.handle){clearTimeout(tm.handle);}
+  tm.handle=0;tm.running=false;tm.id=-1;unlock();
+}
+
+/* ---------- vistas ---------- */
+var app=document.getElementById('app');
+
+function homeHTML(){
+  var h='<main class="wrap home">';
+  h+='<header><p class="kicker">Juego de grupo</p><h1>Regalos Cruzados</h1></header>';
+  h+='<p class="lead">24 pantallas, un móvil que pasa de mano en mano y regalos que cambian de dueño hasta el final.</p>';
+  h+='<section class="panel"><h2>Cómo se juega</h2><ol>'+
+     '<li>Cada jugador deja su regalo envuelto sobre la mesa, delante de su sitio, sin que se vea qué es.</li>'+
+     '<li>El moderador asigna a cada jugador un número, del 1 al total. Todos lo recuerdan.</li>'+
+     '<li>Quien tiene el móvil lee su pantalla en voz alta y hace lo que dice.</li>'+
+     '<li>Al terminar, pasa el móvil al jugador de su izquierda.</li>'+
+     '<li>Los regalos cambian de manos o de sitio según indiquen las pantallas. Nadie abre nada hasta la pantalla final.</li>'+
+     '</ol></section>';
+  if(S&&!setup.confirm){
+    var fin=S.i>=TOTAL;
+    h+='<section class="panel"><h2>Partida en curso</h2><p class="status">'+
+       (fin?'Terminada · '+S.n+' jugadores':'Turno '+(S.i+1)+' de '+TOTAL+' · '+S.n+' jugadores')+'</p>'+
+       '<div class="row"><button class="btn btn-accent" data-a="resume">Retomar</button>'+
+       '<button class="btn btn-ghost" data-a="askreset">Reiniciar</button></div></section>';
+  }else if(S&&setup.confirm){
+    h+='<section class="panel"><h2>¿Reiniciar la partida?</h2><p class="status">Se pierde el avance y se vuelven a barajar las pantallas.</p>'+
+       '<div class="row"><button class="btn btn-accent" data-a="reset">Sí, reiniciar</button>'+
+       '<button class="btn btn-ghost" data-a="cancelreset">Cancelar</button></div></section>';
+  }else{
+    h+='<section class="panel"><h2>Jugadores</h2><div class="stepper">'+
+       '<button class="btn" data-a="minus" aria-label="Un jugador menos">−</button>'+
+       '<span class="val" aria-live="polite">'+setup.n+'</span>'+
+       '<button class="btn" data-a="plus" aria-label="Un jugador más">+</button></div>'+
+       '<button class="btn btn-accent" data-a="start">Barajar y empezar</button></section>';
+  }
+  h+='</main>';
+  return h;
+}
+
+function bigHTML(items){
+  var word=false,i;
+  for(i=0;i<items.length;i++){if(String(items[i]).length>3){word=true;}}
+  var h='<div class="bigs">';
+  for(i=0;i<items.length;i++){h+='<span class="big'+(word?' word':'')+'">'+items[i]+'</span>';}
+  return h+'</div>';
+}
+
+function cardHTML(id){
+  var sc=SCREENS[id];var r=S.res[id];
+  var h='<span class="tag'+(sc.tag==='Especial'?' special':'')+'">'+sc.tag+'</span><h2 class="title">'+sc.title+'</h2>';
+  if(sc.kind==='text'){
+    h+='<p class="text">'+sc.text+'</p>';
+  }else if(sc.kind==='draw'){
+    if(!r){
+      h+='<p class="text">'+sc.text+'</p><div class="act"><button class="btn btn-accent btn-main" data-a="draw">'+(sc.cta||'Sortear')+'</button></div>';
+    }else{
+      var o=sc.result(r,S.n);
+      h+=bigHTML(o.big)+'<p class="text result-line">'+o.line+'</p>';
+    }
+  }else if(sc.kind==='timer'){
+    if(r&&r.done){
+      h+=bigHTML(['¡YA!'])+'<p class="text result-line">'+sc.done+'</p>';
+    }else if(tm.running&&tm.id===id){
+      h+='<div class="ring" role="img" aria-label="Temporizador en marcha"></div><p class="text result-line" style="text-align:center">En marcha. Deja el móvil sobre la mesa.</p>'+
+         '<div class="act"><button class="btn-sm" data-a="stoptimer">Cancelar</button></div>';
+    }else{
+      h+='<p class="text">'+sc.text+'</p><div class="act"><button class="btn btn-accent btn-main" data-a="timer">Empezar</button></div>';
+    }
+  }else if(sc.kind==='reveal'){
+    if(r&&r.revealed){
+      h+='<p class="phrase">'+sc.start+' <span class="sol">'+sc.solution+'</span></p>'+
+         '<p class="text result-line">¿Has acertado? Entonces decides quiénes intercambian sus regalos y cómo. Si no, decide la mayoría con quién cambias el tuyo.</p>';
+    }else{
+      h+='<p class="text">'+sc.text+'</p><p class="phrase">'+sc.start+' <span class="gap">…</span></p>'+
+         '<div class="act"><button class="btn btn-accent btn-main" data-a="reveal">Revelar</button></div>';
+    }
+  }
+  return h;
+}
+
+function gameHTML(){
+  if(S.i>=TOTAL){return finalHTML();}
+  var id=S.order[S.i];
+  var last=S.i===TOTAL-1;
+  var h='<main class="wrap game">'+
+    '<div class="topbar"><button class="btn-sm" data-a="prev"'+(S.i===0?' disabled':'')+' aria-label="Volver a la pantalla anterior">‹ Atrás</button>'+
+    '<button class="btn-sm" data-a="home">Inicio</button><span class="count">'+(S.i+1)+' / '+TOTAL+'</span></div>'+
+    '<section class="card" id="card" aria-live="polite">'+cardHTML(id)+'</section>'+
+    '<p class="hint">Cuando acabes, pasa el móvil a tu izquierda.</p>'+
+    '<div class="nav"><button class="btn btn-accent btn-main" data-a="next">'+(last?'Terminar':'Siguiente →')+'</button></div>'+
+    '</main>';
+  return h;
+}
+
+function finalHTML(){
+  return '<main class="wrap game">'+
+    '<div class="topbar"><button class="btn-sm" data-a="prev" aria-label="Volver a la pantalla anterior">‹ Atrás</button>'+
+    '<button class="btn-sm" data-a="home">Inicio</button></div>'+
+    '<section class="card">'+
+    '<svg class="gift" viewBox="0 0 120 120" aria-hidden="true">'+
+    '<rect class="box" x="16" y="48" width="88" height="62" rx="6"/>'+
+    '<rect class="lid" x="10" y="34" width="100" height="22" rx="6"/>'+
+    '<rect class="rib" x="53" y="34" width="14" height="76"/>'+
+    '<path class="rib" d="M60 34 C40 6 14 14 26 30 C34 38 52 34 60 34 Z"/>'+
+    '<path class="rib" d="M60 34 C80 6 106 14 94 30 C86 38 68 34 60 34 Z"/></svg>'+
+    '<span class="tag">Fin del juego</span>'+
+    '<h2 class="title">Ahora sí: abrid vuestros regalos</h2>'+
+    '<p class="text">Cada uno abre el regalo que tiene delante y lo disfruta. El trueque ha terminado.</p>'+
+    '<div class="final-actions"><button class="btn btn-ghost" data-a="home">Volver al inicio</button></div>'+
+    '</section></main>';
+}
+
+function render(){
+  app.innerHTML=(view==='game'&&S)?gameHTML():homeHTML();
+  try{window.scrollTo(0,0);}catch(e){}
+}
+
+/* ---------- acciones ---------- */
+function act(a){
+  var id;
+  if(a==='minus'){setup.n=Math.max(3,setup.n-1);render();}
+  else if(a==='plus'){setup.n=Math.min(30,setup.n+1);render();}
+  else if(a==='start'){S={n:setup.n,order:shuffled(),i:0,res:{}};save();view='game';render();}
+  else if(a==='resume'){view='game';render();}
+  else if(a==='askreset'){setup.confirm=true;render();}
+  else if(a==='cancelreset'){setup.confirm=false;render();}
+  else if(a==='reset'){stopTimer();if(S){setup.n=S.n;}S=null;save();setup.confirm=false;render();}
+  else if(a==='home'){stopTimer();view='home';setup.confirm=false;render();}
+  else if(a==='next'){stopTimer();if(S.i<TOTAL){S.i++;}save();render();}
+  else if(a==='prev'){stopTimer();if(S.i>0){S.i--;}save();render();}
+  else if(a==='draw'){id=S.order[S.i];S.res[id]=SCREENS[id].draw(S.n);save();render();}
+  else if(a==='timer'){
+    id=S.order[S.i];var sc=SCREENS[id];
+    primeAudio();lock();
+    tm.id=id;tm.running=true;
+    tm.handle=setTimeout(function(){
+      tm.handle=0;tm.running=false;unlock();
+      S.res[id]={done:true};save();alarm();
+      if(view==='game'&&S.i<TOTAL&&S.order[S.i]===id){render();}
+    },rnd(sc.min,sc.max)*1000);
+    render();
+  }
+  else if(a==='stoptimer'){stopTimer();render();}
+  else if(a==='reveal'){id=S.order[S.i];S.res[id]={revealed:true};save();render();}
+}
+
+document.addEventListener('click',function(e){
+  var el=e.target.closest?e.target.closest('[data-a]'):null;
+  if(!el||el.disabled){return;}
+  act(el.getAttribute('data-a'));
+});
+
+S=load();
+if(S){setup.n=S.n;}
+render();
+})();
+</script>
+</body>
+</html>
