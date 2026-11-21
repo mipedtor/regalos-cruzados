@@ -372,24 +372,30 @@ function finalHTML(){
     '</section></main>';
 }
 
-function render(){
+function render(top){
+  var y=0;
+  try{y=window.pageYOffset||0;}catch(e){}
   app.innerHTML=(view==='game'&&S)?gameHTML():homeHTML();
-  try{window.scrollTo(0,0);}catch(e){}
+  try{window.scrollTo(0,top?0:y);}catch(e){}
+}
+function setN(){
+  var v=document.querySelector('.stepper .val');
+  if(v){v.textContent=setup.n;}
 }
 
 /* ---------- acciones ---------- */
 function act(a){
   var id;
-  if(a==='minus'){setup.n=Math.max(3,setup.n-1);render();}
-  else if(a==='plus'){setup.n=Math.min(30,setup.n+1);render();}
-  else if(a==='start'){S={n:setup.n,order:shuffled(),i:0,res:{}};save();view='game';render();}
-  else if(a==='resume'){view='game';render();}
+  if(a==='minus'){setup.n=Math.max(3,setup.n-1);setN();}
+  else if(a==='plus'){setup.n=Math.min(30,setup.n+1);setN();}
+  else if(a==='start'){S={n:setup.n,order:shuffled(),i:0,res:{}};save();view='game';render(true);}
+  else if(a==='resume'){view='game';render(true);}
   else if(a==='askreset'){setup.confirm=true;render();}
   else if(a==='cancelreset'){setup.confirm=false;render();}
   else if(a==='reset'){stopTimer();if(S){setup.n=S.n;}S=null;save();setup.confirm=false;render();}
-  else if(a==='home'){stopTimer();view='home';setup.confirm=false;render();}
-  else if(a==='next'){stopTimer();if(S.i<TOTAL){S.i++;}save();render();}
-  else if(a==='prev'){stopTimer();if(S.i>0){S.i--;}save();render();}
+  else if(a==='home'){stopTimer();view='home';setup.confirm=false;render(true);}
+  else if(a==='next'){stopTimer();if(S.i<TOTAL){S.i++;}save();render(true);}
+  else if(a==='prev'){stopTimer();if(S.i>0){S.i--;}save();render(true);}
   else if(a==='draw'){id=S.order[S.i];S.res[id]=SCREENS[id].draw(S.n);save();render();}
   else if(a==='timer'){
     id=S.order[S.i];var sc=SCREENS[id];
